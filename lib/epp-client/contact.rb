@@ -40,18 +40,20 @@ module EPPClient
       get_result(:xml => response, :callback => :contact_check_process)
     end
 
-    def contact_check_process(xml) #:nodoc:
-      xml.xpath('epp:resData/contact:chkData/contact:cd', EPPClient::SCHEMAS_URL).map do |dom|
-	ret = {
-	  :name => dom.xpath('contact:id', EPPClient::SCHEMAS_URL).text,
-	  :avail => dom.xpath('contact:id', EPPClient::SCHEMAS_URL).attr('avail').value == '1',
-	}
-	unless (reason = dom.xpath('contact:reason', EPPClient::SCHEMAS_URL).text).empty?
-	  ret[:reason] = reason
-	end
-	ret
-      end
-    end
+    def contact_check_process(xml)
+			ret = xml.xpath('epp:resData/contact:chkData/contact:cd', EPPClient::SCHEMAS_URL).map do |dom|
+				res = {
+					:name => dom.xpath('contact:id', EPPClient::SCHEMAS_URL).text,
+					:avail => dom.xpath('contact:id', EPPClient::SCHEMAS_URL).attr('avail').value == '1',
+				}
+
+				unless (reason = dom.xpath('contact:reason', EPPClient::SCHEMAS_URL).text).empty?
+				  res[:reason] = reason
+				end
+				res
+			end
+			ret
+		end
 
     def contact_info_xml(args) #:nodoc:
       command do |xml|
