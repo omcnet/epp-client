@@ -55,20 +55,21 @@ module EPPClient
 			ret
 		end
 
-    def contact_info_xml(args) #:nodoc:
-      command do |xml|
-	xml.info do
-	  xml.info('xmlns' => EPPClient::SCHEMAS_URL['contact-1.0']) do
-	    xml.id(args[:id])
-	    if args.key?(:authInfo)
-	      xml.authInfo do
-		xml.pw(args[:authInfo])
-	      end
-	    end
-	  end
-	end
-      end
-    end
+		def contact_info_xml(contact)
+			command do |xml|
+				xml.info do
+					xml.info do
+						xml.parent.namespace = xml.parent.add_namespace_definition(CONTACT_NS, EPPClient::SCHEMAS_URL[CONTACT_NS])
+						xml[CONTACT_NS].id contact[:id]
+					end
+					if contact.key?(:authInfo)
+						xml[CONTACT_NS].authInfo do
+							xml[CONTACT_NS].pw(contact[:authInfo])
+						end
+					end
+				end
+			end
+		end
 
     # Returns the informations about a contact
     #
