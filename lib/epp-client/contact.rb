@@ -196,53 +196,50 @@ module EPPClient
       ret
     end
 
-    def contact_create_xml(contact) #:nodoc:
-      command do |xml|
-	xml.create do
-	  xml.create('xmlns' => EPPClient::SCHEMAS_URL['contact-1.0']) do
-	    if contact.key?(:id)
-	      xml.id(contact[:id])
-	    else
-	      xml.id('invalid')
-	    end
-	    contact[:postalInfo].each do |type,infos|
-	      xml.postalInfo :type => type do
-		xml.name(infos[:name])
-		xml.org(infos[:org]) if infos.key?(:org)
-		xml.addr do
-		  infos[:addr][:street].each do |street|
-		    xml.street(street)
-		  end
-		  xml.city(infos[:addr][:city])
-		  [:sp, :pc].each do |val|
-		    xml.__send__(val, infos[:addr][val]) if infos[:addr].key?(val)
-		  end
-		  xml.cc(infos[:addr][:cc])
+		def contact_create_xml(contact) #:nodoc:
+			command do |xml|
+				xml.create do
+					xml.create do
+						xml.parent.namespace = xml.parent.add_namespace_definition(CONTACT_NS, EPPClient::SCHEMAS_URL[CONTACT_NS])
+						xml[CONTACT_NS].id contact.key?(:id) ? contact[:id] : 'dummy'
+						contact[:postalInfo].each do |type,infos|
+							xml[CONTACT_NS].postalInfo :type => type do
+								xml[CONTACT_NS].name infos[:name]
+								xml[CONTACT_NS].org infos[:org] if infos.key?(:org)
+								xml[CONTACT_NS].addr do
+									infos[:addr][:street].each do |street|
+										xml[CONTACT_NS].street street
+									end
+									xml[CONTACT_NS].city infos[:addr][:city]
+									[:sp, :pc].each do |val|
+										xml[CONTACT_NS].__send__(val, infos[:addr][val]) if infos[:addr].key?(val)
+									end
+									xml[CONTACT_NS].cc infos[:addr][:cc]
+								end
+							end
+						end
+						[:voice, :fax].each do |val|
+							xml[CONTACT_NS].__send__(val, contact[val]) if contact.key?(val)
+						end
+						xml[CONTACT_NS].email contact[:email]
+						xml[CONTACT_NS].authInfo do
+							xml[CONTACT_NS].pw contact[:authInfo]
+						end
+						if contact.key?(:disclose)
+							xml[CONTACT_NS].disclose do
+								contact[:disclose].each do |disc|
+									if disc.key?(:type)
+										xml[CONTACT_NS].__send__(disc[:name], :type => disc[:type])
+									else
+										xml[CONTACT_NS].__send__(disc[:name])
+									end
+								end
+							end
+						end
+					end
+				end
+			end
 		end
-	      end
-	    end
-	    [:voice, :fax].each do |val|
-	      xml.__send__(val, contact[val]) if contact.key?(val)
-	    end
-	    xml.email(contact[:email])
-	    xml.authInfo do
-	      xml.pw(contact[:authInfo])
-	    end
-	    if contact.key?(:disclose)
-	      xml.disclose do
-		contact[:disclose].each do |disc|
-		  if disc.key?(:type)
-		    xml.__send__(disc[:name], :type => disc[:type])
-		  else
-		    xml.__send__(disc[:name])
-		  end
-		end
-	      end
-	    end
-	  end
-	end
-      end
-    end
 
     # Creates a contact
     #
