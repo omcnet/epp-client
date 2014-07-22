@@ -2,17 +2,25 @@ module EPPClient
   module Contact
     EPPClient::Poll::PARSERS['contact:infData'] = :contact_info_process
 
-    def contact_check_xml(*contacts) #:nodoc:
-      command do |xml|
-	xml.check do
-	  xml.check('xmlns' => EPPClient::SCHEMAS_URL['contact-1.0']) do
-	    contacts.each do |c|
-	      xml.id(c)
-	    end
-	  end
-	end
-      end
-    end
+		CONTACT_NS = 'contact'
+
+		def contact_check_xml(contacts)
+			command do |xml|
+				xml.check do
+					xml.check do
+						xml.parent.namespace = xml.parent.add_namespace_definition(CONTACT_NS, EPPClient::SCHEMAS_URL[CONTACT_NS])
+						contacts[:ids].each do |contact|
+							xml[CONTACT_NS].id contact
+						end
+						if contacts.key?(:authInfo)
+							xml[CONTACT_NS].authInfo do
+								xml[CONTACT_NS].pw(contacts[:authInfo])
+							end
+						end
+					end
+				end
+			end
+		end
 
     # Check the availability of contacts
     #
