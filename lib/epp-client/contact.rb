@@ -295,14 +295,15 @@ module EPPClient
     end
 
     def contact_delete_xml(contact) #:nodoc:
-      command do |xml|
-	xml.delete do
-	  xml.delete('xmlns' => EPPClient::SCHEMAS_URL['contact-1.0']) do
-	    xml.id(contact)
-	  end
-	end
-      end
-    end
+			command do |xml|
+				xml.delete do
+					xml.delete do
+						xml.parent.namespace = xml.parent.add_namespace_definition(CONTACT_NS, EPPClient::SCHEMAS_URL[CONTACT_NS])
+						xml[CONTACT_NS].id(contact)
+					end
+				end
+			end
+		end
 
     # Deletes a contact
     #
