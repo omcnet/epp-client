@@ -289,11 +289,12 @@ module EPPClient
 
     def domain_delete_xml(domain) #:nodoc:
       command do |xml|
-	xml.delete do
-	  xml.delete('xmlns' => EPPClient::SCHEMAS_URL['domain-1.0']) do
-	    xml.name domain
-	  end
-	end
+        xml.delete do
+          xml.delete do
+            xml.parent.namespace = xml.parent.add_namespace_definition(DOMAIN_NS, EPPClient::SCHEMAS_URL[DOMAIN_NS])
+            xml[DOMAIN_NS].name domain
+          end
+        end
       end
     end
 
