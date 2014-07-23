@@ -310,44 +310,45 @@ module EPPClient
 
     def domain_update_xml(args) #:nodoc:
       command do |xml|
-	xml.update do
-	  xml.update('xmlns' => EPPClient::SCHEMAS_URL['domain-1.0']) do
-	    xml.name args[:name]
-	    [:add, :rem].each do |ar|
-	      if args.key?(ar) && (args[ar].key?(:ns) || args[ar].key?(:contacts) || args[ar].key?(:status))
-		xml.__send__(ar) do
-		  if args[ar].key?(:ns)
-		    domain_nss_xml(xml, args[ar][:ns])
-		  end
-		  if args[ar].key?(:contacts)
-		    domain_contacts_xml(xml, args[ar][:contacts])
-		  end
-		  if args[ar].key?(:status)
-		    args[ar][:status].each do |st,text|
-		      if text.nil?
-			xml.status(:s => st)
-		      else
-			xml.status({:s => st}, text)
-		      end
-		    end
-		  end
-		end
-	      end
-	    end
-	    if args.key?(:chg) && (args[:chg].key?(:registrant) || args[:chg].key?(:authInfo))
-	      xml.chg do
-		if args[:chg].key?(:registrant)
-		  xml.registrant args[:chg][:registrant]
-		end
-		if args[:chg].key?(:authInfo)
-		  xml.authInfo do
-		    xml.pw args[:chg][:authInfo]
-		  end
-		end
-	      end
-	    end
-	  end
-	end
+        xml.update do
+          xml.update do
+            xml.parent.namespace = xml.parent.add_namespace_definition(DOMAIN_NS, EPPClient::SCHEMAS_URL[DOMAIN_NS])
+            xml[DOMAIN_NS].name args[:name]
+            [:add, :rem].each do |ar|
+              if args.key?(ar) && (args[ar].key?(:ns) || args[ar].key?(:contacts) || args[ar].key?(:status))
+                xml[DOMAIN_NS].__send__(ar) do
+                  if args[ar].key?(:ns)
+                    domain_nss_xml(xml, args[ar][:ns])
+                  end
+                  if args[ar].key?(:contacts)
+                    domain_contacts_xml(xml, args[ar][:contacts])
+                  end
+                  if args[ar].key?(:status)
+                    args[ar][:status].each do |st,text|
+                      if text.nil?
+                        xml[DOMAIN_NS].status(:s => st)
+                      else
+                        xml[DOMAIN_NS].status({:s => st}, text)
+                      end
+                    end
+                  end
+                end
+              end
+            end
+            if args.key?(:chg) && (args[:chg].key?(:registrant) || args[:chg].key?(:authInfo))
+              xml.chg do
+                if args[:chg].key?(:registrant)
+                  xml[DOMAIN_NS].registrant args[:chg][:registrant]
+                end
+                if args[:chg].key?(:authInfo)
+                  xml[DOMAIN_NS].authInfo do
+                    xml[DOMAIN_NS].pw args[:chg][:authInfo]
+                  end
+                end
+              end
+            end
+          end
+        end
       end
     end
 
