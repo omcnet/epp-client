@@ -50,7 +50,7 @@ module EPPClient
     def domain_info_xml(args) # :nodoc:
         command do |xml|
         xml.info do
-          xml.info do 
+          xml.info do
             xml.parent.namespace = xml.parent.add_namespace_definition(DOMAIN_NS, EPPClient::SCHEMAS_URL[DOMAIN_NS])
             if args.key?(:hosts)
               xml[DOMAIN_NS].name(args[:name],:hosts=>args[:hosts])
@@ -131,55 +131,55 @@ module EPPClient
     def domain_info_process(xml) # :nodoc:
       dom = xml.xpath('epp:resData/domain:infData', EPPClient::SCHEMAS_URL)
       ret = {
-	:name => dom.xpath('domain:name', EPPClient::SCHEMAS_URL).text,
-	:roid => dom.xpath('domain:roid', EPPClient::SCHEMAS_URL).text,
+        :name => dom.xpath('domain:name', EPPClient::SCHEMAS_URL).text,
+        :roid => dom.xpath('domain:roid', EPPClient::SCHEMAS_URL).text,
       }
       if (status = dom.xpath('domain:status', EPPClient::SCHEMAS_URL)).size > 0
-	ret[:status] = status.map {|s| s.attr('s')}
+        ret[:status] = status.map {|s| s.attr('s')}
       end
       if (registrant = dom.xpath('domain:registrant', EPPClient::SCHEMAS_URL)).size > 0
-	ret[:registrant] = registrant.text
+        ret[:registrant] = registrant.text
       end
       if (contact = dom.xpath('domain:contact', EPPClient::SCHEMAS_URL)).size > 0
-	ret[:contacts] = contact.inject({}) do |a,c|
-	  s = c.attr('type').to_sym
-	  a[s] ||= []
-	  a[s] << c.text
-	  a
-	end
+        ret[:contacts] = contact.inject({}) do |a,c|
+          s = c.attr('type').to_sym
+          a[s] ||= []
+          a[s] << c.text
+          a
+        end
       end
       if (ns = dom.xpath('domain:ns', EPPClient::SCHEMAS_URL)).size > 0
-	if (hostObj = ns.xpath('domain:hostObj', EPPClient::SCHEMAS_URL)).size > 0
-	  ret[:ns] = hostObj.map {|h| h.text}
-	elsif (hostAttr = ns.xpath('domain:hostAttr', EPPClient::SCHEMAS_URL)).size > 0
-	  ret[:ns] = hostAttr.map do |h|
-	    r = { :hostName => h.xpath('domain:hostName', EPPClient::SCHEMAS_URL).text }
-	    if (v4 = h.xpath('domain:hostAddr[@ip="v4"]', EPPClient::SCHEMAS_URL)).size > 0
-	      r[:hostAddrv4] = v4.map {|v| v.text}
-	    end
-	    if (v6 = h.xpath('domain:hostAddr[@ip="v6"]', EPPClient::SCHEMAS_URL)).size > 0
-	      r[:hostAddrv6] = v6.map {|v| v.text}
-	    end
-	    r
-	  end
-	end
+        if (hostObj = ns.xpath('domain:hostObj', EPPClient::SCHEMAS_URL)).size > 0
+          ret[:ns] = hostObj.map {|h| h.text}
+        elsif (hostAttr = ns.xpath('domain:hostAttr', EPPClient::SCHEMAS_URL)).size > 0
+          ret[:ns] = hostAttr.map do |h|
+            r = { :hostName => h.xpath('domain:hostName', EPPClient::SCHEMAS_URL).text }
+            if (v4 = h.xpath('domain:hostAddr[@ip="v4"]', EPPClient::SCHEMAS_URL)).size > 0
+              r[:hostAddrv4] = v4.map {|v| v.text}
+            end
+            if (v6 = h.xpath('domain:hostAddr[@ip="v6"]', EPPClient::SCHEMAS_URL)).size > 0
+              r[:hostAddrv6] = v6.map {|v| v.text}
+            end
+            r
+          end
+        end
       end
       if (host = dom.xpath('domain:host', EPPClient::SCHEMAS_URL)).size > 0
-	ret[:host] = host.map {|h| h.text}
+        ret[:host] = host.map {|h| h.text}
       end
-      %w(clID upID).each do |val|
-	if (r = dom.xpath("domain:#{val}", EPPClient::SCHEMAS_URL)).size > 0
-	  ret[val.to_sym] = r.text
-	end
-      end
-      %w(crDate exDate upDate trDate).each do |val|
-	if (r = dom.xpath("domain:#{val}", EPPClient::SCHEMAS_URL)).size > 0
-	  ret[val.to_sym] = DateTime.parse(r.text)
-	end
-      end
-      if (authInfo = dom.xpath('domain:authInfo', EPPClient::SCHEMAS_URL)).size > 0
-	ret[:authInfo] = authInfo.xpath('domain:pw', EPPClient::SCHEMAS_URL).text
-      end
+        %w(clID crID upID).each do |val|
+          if (r = dom.xpath("domain:#{val}", EPPClient::SCHEMAS_URL)).size > 0
+            ret[val.to_sym] = r.text
+          end
+        end
+        %w(crDate exDate upDate trDate).each do |val|
+          if (r = dom.xpath("domain:#{val}", EPPClient::SCHEMAS_URL)).size > 0
+            ret[val.to_sym] = DateTime.parse(r.text)
+          end
+        end
+        if (authInfo = dom.xpath('domain:authInfo', EPPClient::SCHEMAS_URL)).size > 0
+          ret[:authInfo] = authInfo.xpath('domain:pw', EPPClient::SCHEMAS_URL).text
+        end
       return ret
     end
 
