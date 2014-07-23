@@ -48,22 +48,27 @@ module EPPClient
     end
 
     def domain_info_xml(args) # :nodoc:
-      command do |xml|
-	xml.info do
-	  xml.info('xmlns' => EPPClient::SCHEMAS_URL['domain-1.0']) do
-	    xml.name(args[:name])
-	    if args.key?(:authInfo)
-	      xml.authInfo do
-		if args.key?(:roid)
-		  xml.pw({:roid => args[:roid]}, args[:authInfo])
-		else
-		  xml.pw(args[:authInfo])
-		end
-	      end
-	    end
-	  end
-	end
-      end
+        command do |xml|
+        xml.info do
+          xml.info do 
+            xml.parent.namespace = xml.parent.add_namespace_definition(DOMAIN_NS, EPPClient::SCHEMAS_URL[DOMAIN_NS])
+            if args.key?(:hosts)
+              xml[DOMAIN_NS].name(args[:name],:hosts=>args[:hosts])
+            else
+              xml[DOMAIN_NS].name(args[:name])
+            end
+              if args.key?(:authInfo)
+                xml[DOMAIN_NS].authInfo do
+                if args.key?(:roid)
+                  xml[DOMAIN_NS].pw({:roid => args[:roid]}, args[:authInfo])
+                else
+                    xml[DOMAIN_NS].pw(args[:authInfo])
+                end
+                end
+              end
+          end
+        end
+        end
     end
 
     # Returns the informations about a domain
