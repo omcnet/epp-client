@@ -3,16 +3,20 @@ module EPPClient
     EPPClient::Poll::PARSERS['domain:panData'] = :domain_pending_action_process
     EPPClient::Poll::PARSERS['domain:trnData'] = :domain_transfer_response
 
+    DOMAIN_NS = 'domain'
+
     def domain_check_xml(*domains) # :nodoc:
-      command do |xml|
-	xml.check do
-	  xml.check('xmlns' => EPPClient::SCHEMAS_URL['domain-1.0']) do
-	    domains.each do |dom|
-	      xml.name(dom)
-	    end
-	  end
-	end
-      end
+      domains.flatten!
+        command do |xml|
+        xml.check do
+          xml.check do
+            xml.parent.namespace = xml.parent.add_namespace_definition(DOMAIN_NS, EPPClient::SCHEMAS_URL[DOMAIN_NS])
+              domains.each do |dom|
+                xml[DOMAIN_NS].name(dom)
+              end
+          end
+        end
+        end
     end
 
     # Check the availability of domains
