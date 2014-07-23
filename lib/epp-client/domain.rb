@@ -184,64 +184,60 @@ module EPPClient
     end
 
     def domain_nss_xml(xml, nss) #:nodoc:
-      xml.ns do
-	if nss.first.is_a?(Hash)
-	  nss.each do |ns|
-	    xml.hostAttr do
-	      xml.hostName ns[:hostName]
-	      if ns.key?(:hostAddrv4)
-		ns[:hostAddrv4].each do |v4|
-		  xml.hostAddr({:ip => :v4}, v4)
-		end
-	      end
-	      if ns.key?(:hostAddrv6)
-		ns[:hostAddrv6].each do |v6|
-		  xml.hostAddr({:ip => :v6}, v6)
-		end
-	      end
-	    end
-	  end
-	else
-	  nss.each do |ns|
-	    xml.hostObj ns
-	  end
-	end
+      xml[DOMAIN_NS].ns do
+        if nss.first.is_a?(Hash)
+          nss.each do |ns|
+            xml[DOMAIN_NS].hostAttr do
+              xml[DOMAIN_NS].hostName ns[:hostName]
+              if ns.key?(:hostAddrv4)
+                ns[:hostAddrv4].each do |v4|
+                  xml[DOMAIN_NS].hostAddr({:ip => :v4}, v4)
+                end
+              end
+              if ns.key?(:hostAddrv6)
+                ns[:hostAddrv6].each do |v6|
+                  xml[DOMAIN_NS].hostAddr({:ip => :v6}, v6)
+                end
+              end
+            end
+          end
+        else
+          nss.each do |ns|
+            xml[DOMAIN_NS].hostObj ns
+          end
+        end
       end
     end
 
     def domain_contacts_xml(xml, args) #:nodoc:
       args.each do |type,contacts|
-	contacts.each do |c|
-	  xml.contact({:type => type}, c)
-	end
+        contacts.each do |c|
+          xml[DOMAIN_NS].contact({:type => type}, c)
+        end
       end
     end
 
     def domain_create_xml(args) #:nodoc:
       command do |xml|
-	xml.create do
-	  xml.create('xmlns' => EPPClient::SCHEMAS_URL['domain-1.0']) do
-	    xml.name args[:name]
-
-	    if args.key?(:period)
-	      xml.period({:unit => args[:period][:unit]}, args[:period][:number])
-	    end
-
-	    if args.key?(:ns)
-	      domain_nss_xml(xml, args[:ns])
-	    end
-
-	    xml.registrant args[:registrant] if args.key?(:registrant)
-
-	    if args.key?(:contacts)
-	      domain_contacts_xml(xml, args[:contacts])
-	    end
-
-	    xml.authInfo do
-	      xml.pw args[:authInfo]
-	    end
-	  end
-	end
+        xml.create do
+          xml.create do
+            xml.parent.namespace = xml.parent.add_namespace_definition(DOMAIN_NS, EPPClient::SCHEMAS_URL[DOMAIN_NS])
+            xml[DOMAIN_NS].name args[:name]
+            if args.key?(:period)
+              xml[DOMAIN_NS].period({:unit => args[:period][:unit]}, args[:period][:number])
+            end
+            if args.key?(:ns)
+              domain_nss_xml(xml, args[:ns])
+            end
+            xml.registrant args[:registrant] if args.key?(:registrant)
+            if args.key?(:contacts)
+              domain_contacts_xml(xml, args[:contacts])
+            end
+            xml[DOMAIN_NS].authInfo do
+              xml[DOMAIN_NS].pw args[:authInfo]
+            end
+          end
+        end
       end
     end
 
