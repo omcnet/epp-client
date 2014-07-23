@@ -317,70 +317,73 @@ module EPPClient
     end
 
     def contact_update_xml(args) #:nodoc:
-      command do |xml|
-	xml.update do
-	  xml.update('xmlns' => EPPClient::SCHEMAS_URL['contact-1.0']) do
-	    xml.id args[:id]
-	    if args.key?(:add) && args[:add].key?(:status)
-	      xml.add do
-		args[:add][:status].each do |s|
-		  xml.status :s => s
-		end
-	      end
-	    end
-	    if args.key?(:rem) && args[:rem].key?(:status)
-	      xml.rem do
-		args[:rem][:status].each do |s|
-		  xml.status :s => s
-		end
-	      end
-	    end
-	    if args.key?(:chg)
-	      contact = args[:chg]
-	      xml.chg do
-		if contact.key?(:postalInfo)
-		  contact[:postalInfo].each do |type,infos|
-		    xml.postalInfo :type => type do
-		      xml.name(infos[:name])
-		      xml.org(infos[:org]) if infos.key?(:org)
-		      xml.addr do
-			infos[:addr][:street].each do |street|
-			  xml.street(street)
+			command do |xml|
+				xml.update do
+					xml.update do
+						xml.parent.namespace = xml.parent.add_namespace_definition(CONTACT_NS, EPPClient::SCHEMAS_URL[CONTACT_NS])
+						xml[CONTACT_NS].id args[:id]
+						if args.key?(:add) && args[:add].key?(:status)
+							xml[CONTACT_NS].add do
+								args[:add][:status].each do |s|
+									xml[CONTACT_NS].status :s => s
+								end
+							end
+						end
+						if args.key?(:rem) && args[:rem].key?(:status)
+							xml[CONTACT_NS].rem do
+								args[:rem][:status].each do |s|
+									xml[CONTACT_NS].status :s => s
+								end
+							end
+						end
+						if args.key?(:chg)
+							contact = args[:chg]
+							xml[CONTACT_NS].chg do
+								if contact.key?(:postalInfo)
+									contact[:postalInfo].each do |type,infos|
+										xml[CONTACT_NS].postalInfo :type => type do
+											xml[CONTACT_NS].name(infos[:name]) if infos.key?(:name)
+											xml[CONTACT_NS].org(infos[:org]) if infos.key?(:org)
+											if infos.key?(:addr)
+												xml[CONTACT_NS].addr do
+													infos[:addr][:street].each do |street|
+														xml[CONTACT_NS].street(street)
+													end
+													xml[CONTACT_NS].city(infos[:addr][:city])
+													[:sp, :pc].each do |val|
+														xml[CONTACT_NS].__send__(val, infos[:addr][val]) if infos[:addr].key?(val)
+													end
+													xml[CONTACT_NS].cc(infos[:addr][:cc])
+												end
+											end
+										end
+									end
+								end
+								[:voice, :fax, :email].each do |val|
+									xml[CONTACT_NS].__send__(val, contact[val]) if contact.key?(val)
+								end
+								if contact.key?(:authInfo)
+									xml[CONTACT_NS].authInfo do
+										xml[CONTACT_NS].pw(contact[:authInfo])
+									end
+								end
+								if contact.key?(:disclose)
+									xml[CONTACT_NS].disclose(:flag=>contact[:disclose][:flag]) do
+										contact[:disclose][:elements].each do |disc|
+											if disc.is_a?(Hash)
+												xml[CONTACT_NS].__send__(disc[:name], :type => disc[:type])
+											else
+												xml[CONTACT_NS].__send__(disc)
+											end
+										end
+									end
+								end
+							end
+						end
+					end
+				end
 			end
-			xml.city(infos[:addr][:city])
-			[:sp, :pc].each do |val|
-			  xml.__send__(val, infos[:addr][val]) if infos[:addr].key?(val)
-			end
-			xml.cc(infos[:addr][:cc])
-		      end
-		    end
-		  end
 		end
-		[:voice, :fax, :email].each do |val|
-		  xml.__send__(val, contact[val]) if contact.key?(val)
-		end
-		if contact.key?(:authInfo)
-		  xml.authInfo do
-		    xml.pw(contact[:authInfo])
-		  end
-		end
-		if contact.key?(:disclose)
-		  xml.disclose do
-		    contact[:disclose].each do |disc|
-		      if disc.key?(:type)
-			xml.__send__(disc[:name], :type => disc[:type])
-		      else
-			xml.__send__(disc[:name])
-		      end
-		    end
-		  end
-		end
-	      end
-	    end
-	  end
-	end
-      end
-    end
 
     # Updates a contact
     #
