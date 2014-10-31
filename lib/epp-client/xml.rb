@@ -6,8 +6,8 @@ module EPPClient
     # Parses a frame and returns a Nokogiri::XML::Document.
     def parse_xml(string) #:doc:
       Nokogiri::XML::Document.parse(string) do |opts|
-	opts.options = 0
-	opts.noblanks
+        opts.options = 0
+        opts.noblanks
       end
     end
     private :parse_xml
@@ -25,17 +25,17 @@ module EPPClient
     end
 
     def raw_builder(opts = {}) #:nodoc:
-      xml = Builder::XmlMarkup.new(opts)
-      yield xml
+      Nokogiri::XML::Builder.new(opts) do |xml|
+        yield xml
+      end
     end
 
-    # creates a Builder::XmlMarkup object, mostly only used by +command+
-    def builder(opts = {})
+    # creates a Nokogiri::XML::Builder object, mostly only used by +command+
+    def builder(opts = {:encoding=>'UTF-8'})
       raw_builder(opts) do |xml|
-	xml.instruct! :xml, :version =>"1.0", :encoding => "UTF-8"
-	xml.epp('xmlns' => EPPClient::SCHEMAS_URL['epp'], 'xmlns:epp' => EPPClient::SCHEMAS_URL['epp']) do
-	  yield xml
-	end
+        xml.epp(:xmlns => EPPClient::SCHEMAS_URL['epp']) do
+          yield xml
+        end
       end
     end
 
@@ -104,47 +104,60 @@ module EPPClient
     # being the extensions.
     #
     #   command do |xml|
-    #       xml.logout
+    #     xml.logout
     #   end
     #
     # or
     #
     #   command(lambda do |xml|
-    #       xml.logout
-    #     end, lambda do |xml|
-    #       xml.extension
-    #     end)
+    #     xml.logout
+    #   end, lambda do |xml|
+    #     xml.extension
+    #   end)
     def command(*args, &block)
-      builder do |xml|
-	xml.command do
-	  if block_given?
-	    yield xml
-	  else
-	    command = args.shift
-	    command.call(xml)
-	    args.each do |ext|
-	      xml.extension do
-		ext.call(xml)
-	      end
-	    end
-	  end
-	  xml.clTRID(clTRID)
-	end
+			ret = builder do |xml|
+				xml.command do
+          if block_given?
+            yield xml
+          else
+            command = args.shift
+            command.call(xml)
+            args.each do |ext|
+              xml.extension do
+                ext.call(xml)
+              end
+            end
+          end
+          xml.clTRID(clTRID)
+        end
       end
+      ret.to_xml(:save_with => Nokogiri::XML::Node::SaveOptions::AS_XML).strip
     end
 
     # Wraps the content in an epp:extension.
-    def extension
-      raw_builder do |xml|
-	xml.extension do
-	  yield(xml)
-	end
+    # Usage:
+    #   extension do |xml|
+    #     xml[namespace].command(XMLNS) do
+    #       xml.subcommand, k=>v, text
+    #     end
+    #   end
+    #
+    # You don't need to set namespace on childs of the node where you defined it
+    def extension(&block)
+      ext = raw_builder do |xml|
+        xml.extension do
+          yield(xml)
+        end
       end
+      ext.doc.child
     end
 
-    # Insert xml2 in xml1 before pattern
-    def insert_extension(xml1, xml2, pattern = /<clTRID>/)
-      xml1.sub(pattern, "#{xml2}\\&")
+    # Insert node in root before clTRID node
+    def insert_extension(_root,_node)
+			root = Nokogiri::XML(_root)
+			node = Nokogiri::XML::DocumentFragment.parse(_node)
+			root.at('clTRID').add_previous_sibling(node)
+			root.to_xml(:save_with => Nokogiri::XML::Node::SaveOptions::AS_XML).strip
     end
   end
 end
