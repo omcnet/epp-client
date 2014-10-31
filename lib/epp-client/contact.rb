@@ -128,6 +128,9 @@ module EPPClient
     #   parties. See
     #   section 2.9[http://tools.ietf.org/html/rfc5733#section-2.9] of RFC 5733
     #   for details.
+    #--
+    #FIXME: :voice could have an "x" attribute for extension
+    #++
     def contact_info(args)
       if String === args
 	args = {:id => args}
@@ -187,8 +190,8 @@ module EPPClient
 	ret[:disclose] = { :flag => disclose.attr('flag').value == '1', :elements => [] }
 	disclose.children.each do |c|
 	  r = { :name => c.name }
-	  unless (type = c.attr('type').value).nil?
-	    r[:type] == type
+	  unless (type = c.attr('type')).nil?
+	    r[:type] == type.value
 	  end
 	  ret[:disclose][:elements] << r
 	end
