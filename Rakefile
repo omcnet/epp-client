@@ -3,6 +3,7 @@ require 'rake'
 require 'rdoc/task'
 require 'rubygems/package_task'
 require "bundler/gem_helper"
+require 'rspec/core/rake_task'
 
 MY_GEMS = Dir['*.gemspec'].map {|g| g.sub(/.*-(.*)\.gemspec/, '\1')}
 
@@ -39,3 +40,6 @@ Rake::RDocTask.new do |rdoc|
   rdoc.rdoc_files.include('lib/**/*.rb')
 end
 
+RSpec::Core::RakeTask.new(:spec)
+
+task :default => :spec
