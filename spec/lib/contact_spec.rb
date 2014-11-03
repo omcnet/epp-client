@@ -17,7 +17,7 @@ describe 'Contacts' do
       expect(nil).to receive(:write).with([xml_c.length+4].pack('N')+xml_c).once
 			expect(nil).to receive(:read).with(4).once {[xml_s.length+4].pack('N')}
 			expect(nil).to receive(:read).with(xml_s.length).once {xml_s}
-      expect(tester.contact_check :ids => ['sh8013','sah8013','8013sah']).to eq(
+      expect(tester.contact_check ['sh8013','sah8013','8013sah']).to eq(
         [{:name=>"sh8013", :avail=>true},
           {:name=>"sah8013", :avail=>false, :reason=>"In use"},
           {:name=>"8013sah", :avail=>true}])
