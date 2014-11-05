@@ -229,7 +229,7 @@ module EPPClient
             if args.key?(:ns)
               domain_nss_xml(xml, args[:ns])
             end
-            xml.registrant args[:registrant] if args.key?(:registrant)
+            xml[DOMAIN_NS].registrant args[:registrant] if args.key?(:registrant)
             if args.key?(:contacts)
               domain_contacts_xml(xml, args[:contacts])
             end
