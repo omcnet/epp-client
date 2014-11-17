@@ -337,7 +337,7 @@ module EPPClient
               end
             end
             if args.key?(:chg) && (args[:chg].key?(:registrant) || args[:chg].key?(:authInfo))
-              xml.chg do
+              xml[DOMAIN_NS].chg do
                 if args[:chg].key?(:registrant)
                   xml[DOMAIN_NS].registrant args[:chg][:registrant]
                 end
