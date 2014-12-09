@@ -26,6 +26,7 @@ describe 'Contacts', pending: "we need to clean up this mess first. wtf!" do
           {:name=>"8013sah", :avail=>true}])
     end
   end
+
   context 'info' do
     it 'IETF sample' do
       xml_c = readCleanXML('spec/xml/contact_info_c.xml')

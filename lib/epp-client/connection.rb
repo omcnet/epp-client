@@ -57,7 +57,7 @@ module EPPClient
       # we must not concatenate the size and the xml document
       # as that will result in an encoding error
       # the size part is ascii-8bit and the xml document UTF-8
-      @socket.write([xml.size + 4].pack('N'))
+      @socket.write([xml.bytes.size + 4].pack('N'))
       @socket.write(xml)
       sent_frame_to_xml
       return
