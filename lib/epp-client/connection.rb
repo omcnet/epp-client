@@ -24,26 +24,26 @@ module EPPClient
       @srv_lang = xml.xpath('epp:epp/epp:greeting/epp:svcMenu/epp:lang', EPPClient::SCHEMAS_URL).map {|n| n.text}
       @srv_ns = xml.xpath('epp:epp/epp:greeting/epp:svcMenu/epp:objURI', EPPClient::SCHEMAS_URL).map {|n| n.text}
       if (ext = xml.xpath('epp:epp/epp:greeting/epp:svcMenu/epp:svcExtension/epp:extURI', EPPClient::SCHEMAS_URL)).size > 0
-	@srv_ext = ext.map {|n| n.text}
-      end
+       @srv_ext = ext.map {|n| n.text}
+     end
 
-      return xml
-    end
+     return xml
+   end
 
     # Gracefully close the connection
     def close_connection
       if defined?(@socket) and @socket.is_a?(OpenSSL::SSL::SSLSocket)
-	@socket.close
-	@socket = nil
-      end
+       @socket.close
+       @socket = nil
+     end
 
-      if defined?(@tcpserver) and @tcpserver.is_a?(TCPSocket)
-	@tcpserver.close
-	@tcpserver = nil
-      end
+     if defined?(@tcpserver) and @tcpserver.is_a?(TCPSocket)
+       @tcpserver.close
+       @tcpserver = nil
+     end
 
-      return true if @tcpserver.nil? and @socket.nil?
-    end
+     return true if @tcpserver.nil? and @socket.nil?
+   end
 
     # Sends a frame and returns the server's answer
     def send_request(xml)
@@ -54,7 +54,11 @@ module EPPClient
     # sends a frame
     def send_frame(xml)
       @sent_frame = xml
-      @socket.write([xml.size + 4].pack("N") + xml)
+      # we must not concatenate the size and the xml document
+      # as that will result in an encoding error
+      # the size part is ascii-8bit and the xml document UTF-8
+      @socket.write([xml.size + 4].pack('N'))
+      @socket.write(xml)
       sent_frame_to_xml
       return
     end
@@ -63,16 +67,16 @@ module EPPClient
     def get_frame
       size = @socket.read(4)
       if size.nil?
-	if @socket.eof?
-	  raise SocketError, "Connection closed by remote server"
-	else
-	  raise SocketError, "Error reading frame from remote server"
-	end
-      else
-	size = size.unpack('N')[0]
-	@recv_frame = @socket.read(size - 4)
-	recv_frame_to_xml
-      end
-    end
-  end
+       if @socket.eof?
+         raise SocketError, "Connection closed by remote server"
+       else
+         raise SocketError, "Error reading frame from remote server"
+       end
+     else
+       size = size.unpack('N')[0]
+       @recv_frame = @socket.read(size - 4)
+       recv_frame_to_xml
+     end
+   end
+ end
 end

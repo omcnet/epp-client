@@ -4,3 +4,9 @@ source 'http://rubygems.org'
 Dir['*.gemspec'].each do |i|
   gemspec :name => i.sub(/\.gemspec$/, '')
 end
+
+group :development,:test do
+  gem 'rspec'
+  gem 'guard-rspec'
+  gem 'pry'
+end
