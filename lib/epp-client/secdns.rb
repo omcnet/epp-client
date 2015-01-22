@@ -4,6 +4,8 @@ module EPPClient
       secDNS-1.1
     ]
 
+    SECDNS_NS = 'secDNS'
+
     EPPClient::SCHEMAS_URL.merge!(SCHEMAS_SECDNS.inject({}) do |a,s|
       a[s.sub(/-1\.1$/, '')] = "urn:ietf:params:xml:ns:#{s}" if s =~ /-1\.1$/
       a[s] = "urn:ietf:params:xml:ns:#{s}"
@@ -99,7 +101,8 @@ module EPPClient
 
       if domain.key?(:maxSigLife) || domain.key?(:dsData) || domain.key?(:keyData)
 	ext = extension do |xml|
-	  xml.create( :xmlns => EPPClient::SCHEMAS_URL['secDNS']) do
+	  xml.create do
+      xml.parent.namespace = xml.parent.add_namespace_definition(SECDNS_NS, EPPClient::SCHEMAS_URL['secDNS'])
 	    if domain.key?(:maxSigLife)
 	      xml.maxSigLife(domain[:maxSigLife])
 	    end
