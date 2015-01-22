@@ -273,7 +273,6 @@ module EPPClient
     #   the date and time identifying the end of the domain object's
     #   registration period.
     def domain_create(args)
-      binding.pry
       xml = domain_create_xml(args)
 
       response = send_request(xml)
@@ -386,8 +385,6 @@ module EPPClient
     #
     # Returns true on success, or raises an exception.
     def domain_update(args)
-      binding.pry
-
       xml = domain_update_xml(args)
 
       response = send_request(xml)
